@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\build\Microsoft.Diagnostics.Tracing.TraceEvent.props" Condition="Exists('packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\build\Microsoft.Diagnostics.Tracing.TraceEvent.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0787D527-24B9-42BE-A3D3-A040FB50547B}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SilkETW</RootNamespace>
+    <AssemblyName>SilkETW</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dia2Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\lib\net45\Dia2Lib.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="McMaster.Extensions.CommandLineUtils, Version=2.3.2.0, Culture=neutral, PublicKeyToken=6f71cb76b82f055d, processorArchitecture=MSIL">
+      <HintPath>packages\McMaster.Extensions.CommandLineUtils.2.3.2\lib\net45\McMaster.Extensions.CommandLineUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.FastSerialization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\lib\net45\Microsoft.Diagnostics.FastSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent, Version=2.0.36.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\lib\net45\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.12.0.1\lib\net35\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="OSExtensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\lib\net45\OSExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="TraceReloggerLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\lib\net45\TraceReloggerLib.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="YaraSharp, Version=1.3.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>packages\YaraSharp.1.3.1\lib\net\YaraSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ETWCollector.cs" />
+    <Compile Include="h_SilkETW.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\build\Microsoft.Diagnostics.Tracing.TraceEvent.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.36\build\Microsoft.Diagnostics.Tracing.TraceEvent.props'))" />
+    <Error Condition="!Exists('packages\YaraSharp.1.3.1\build\net\YaraSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\YaraSharp.1.3.1\build\net\YaraSharp.targets'))" />
+  </Target>
+  <Import Project="packages\YaraSharp.1.3.1\build\net\YaraSharp.targets" Condition="Exists('packages\YaraSharp.1.3.1\build\net\YaraSharp.targets')" />
+</Project>
