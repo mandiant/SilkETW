@@ -317,7 +317,7 @@ namespace SilkETW
                               "-f  (--filter)        Filter types: None, EventName, ProcessID, ProcessName, Opcode\n" +
                               "-fv (--filtervalue)   Filter type capture value, eg \"svchost\" for ProcessName\n" +
                               "-y  (--yara)          Full path to folder containing Yara rules\n" +
-                              "-yo (--yaraoptions)   Eiter record \"All\" events or only \"Matches\"\n\n" +
+                              "-yo (--yaraoptions)   Either record \"All\" events or only \"Matches\"\n\n" +
 
                               " >--~~--> Usage? <--~~--<\n";
             Console.WriteLine(HelpText);
