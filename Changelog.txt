@@ -1,3 +1,7 @@
+-= SilkETW v0.5 =-
+
+* Add support for writing results to the Windows event log.
+
 -= SilkETW v0.4 =-
 
 * Initial public release.

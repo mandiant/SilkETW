@@ -28,7 +28,7 @@ namespace SilkETW
         public OutputType OutputType { get; }
 
         [Option("-p|--path", CommandOptionType.SingleValue)]
-        public String Path { get; } = String.Empty;
+        public String Path { get; set; } = String.Empty;
 
         [Option("-pn|--providername", CommandOptionType.SingleValue)]
         public String ProviderName { get; } = String.Empty;
@@ -172,7 +172,7 @@ namespace SilkETW
                         }
                     }
                 }
-                else
+                else if (OutputType == OutputType.url)
                 {
                     if (String.IsNullOrEmpty(Path))
                     {
@@ -189,6 +189,10 @@ namespace SilkETW
                             return;
                         }
                     }
+                }
+                else if (OutputType == OutputType.eventlog)
+                {
+                    Path = "SilkETW-Log";
                 }
             }
 

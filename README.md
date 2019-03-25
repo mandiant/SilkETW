@@ -160,5 +160,6 @@ For details on version specific changes, please refer to the [Changelog](Changel
 ### RoadMap
 
 * Offer users the option to write trace data to disk as *.etl files.
+* ~~Offer users the option to write trace data to the Windows event log.~~ **(v0.5)**
 * Create a separate instance (SilkService) which can be deployed as a service with a configuration file.
 * Suggestions welcome!

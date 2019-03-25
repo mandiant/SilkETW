@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Session;
@@ -48,6 +49,10 @@ namespace SilkETW
                     // Ctrl-c callback handler
                     SilkUtility.SetupCtrlCHandler(() =>
                     {
+                        if (OutputType == OutputType.eventlog)
+                        {
+                            SilkUtility.WriteEventLogEntry("{\"Collector\":\"Stop\",\"Error\":false}", EventLogEntryType.SuccessAudit, EventIds.StopOk, Path);
+                        }
                         TerminateCollector();
                     });
 
@@ -136,9 +141,17 @@ namespace SilkETW
                                 if (ProcessResult == 1)
                                 {
                                     SilkUtility.ReturnStatusMessage("[!] The collector failed to write to file", ConsoleColor.Red);
-                                } else
+                                } else if (ProcessResult == 2)
                                 {
                                     SilkUtility.ReturnStatusMessage("[!] The collector failed to POST the result", ConsoleColor.Red);
+                                } else {
+                                    SilkUtility.ReturnStatusMessage("[!] The collector failed write to the eventlog", ConsoleColor.Red);
+                                }
+
+                                // Write status to eventlog if dictated by the output type
+                                if (OutputType == OutputType.eventlog)
+                                {
+                                    SilkUtility.WriteEventLogEntry($"{{\"Collector\":\"Stop\",\"Error\":true,\"ErrorCode\":{ProcessResult}}}", EventLogEntryType.Error, EventIds.StopError, Path);
                                 }
 
                                 // Shut down the collector
@@ -156,6 +169,21 @@ namespace SilkETW
                         // Note that the collector doesn't know if you specified a wrong provider name,
                         // the only tell is that you won't get any events ;) 
                         TraceSession.EnableProvider(ProviderName, (TraceEventLevel)UserTraceEventLevel, TraceKeywords);
+                    }
+
+                    // Write status to eventlog if dictated by the output type
+                    if (OutputType == OutputType.eventlog)
+                    {
+                        String ConvertKeywords;
+                        if (CollectorType == CollectorType.Kernel)
+                        {
+                            ConvertKeywords = Enum.GetName(typeof(KernelTraceEventParser.Keywords), TraceKeywords);
+                        } else
+                        {
+                            ConvertKeywords = "0x" + String.Format("{0:X}", TraceKeywords);
+                        }
+                        String Message = $"{{\"Collector\":\"Start\",\"Data\":{{\"Type\":\"{CollectorType}\",\"Provider\":\"{ProviderName}\",\"Keywords\":\"{ConvertKeywords}\",\"FilterOption\":\"{FilterOption}\",\"FilterValue\":\"{FilterValue}\",\"YaraPath\":\"{YaraScan}\",\"YaraOption\":\"{YaraOptions}\"}}}}";
+                        SilkUtility.WriteEventLogEntry(Message, EventLogEntryType.SuccessAudit, EventIds.Start, Path);
                     }
 
                     // Continuously process all new events in the data source

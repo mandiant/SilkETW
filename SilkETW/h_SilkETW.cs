@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Diagnostics;
 using Microsoft.Diagnostics.Tracing;
 using System.Collections;
 using System.Security.AccessControl;
@@ -12,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SilkETW
 {
-    // Command line enums
+    // Enums
     enum CollectorType
     {
         None = 0,
@@ -24,7 +25,8 @@ namespace SilkETW
     {
         None = 0,
         url,
-        file
+        file,
+        eventlog
     }
 
     enum FilterOption
@@ -41,6 +43,14 @@ namespace SilkETW
         None = 0,
         All,
         Matches
+    }
+
+    enum EventIds
+    {
+        Start = 0,
+        StopOk,
+        StopError,
+        Event
     }
 
     enum KernelKeywords
@@ -277,7 +287,7 @@ namespace SilkETW
             Console.WriteLine("███████║██║█████╗██║  ██╗███████╗   ██║   ╚███╔███╔╝  ");
             Console.WriteLine("╚══════╝╚═╝╚════╝╚═╝  ╚═╝╚══════╝   ╚═╝    ╚══╝╚══╝   ");
             Console.ResetColor();
-            Console.WriteLine("                  [v0.4 - Ruben Boonen => @FuzzySec]\n");
+            Console.WriteLine("                  [v0.5 - Ruben Boonen => @FuzzySec]\n");
         }
 
         // Print trivia ;)
@@ -310,10 +320,12 @@ namespace SilkETW
                               "                      ReferenceSet, PMCProfile, NonContainer\n" +
                               "-uk (--userkeyword)   Define a mask of valid keywords, eg 0x2038 -> JitKeyword|InteropKeyword|\n" +
                               "                      LoaderKeyword|NGenKeyword\n" +
-                              "-pn (--providername)  User ETW provider name, eg \"Microsoft-Windows-DotNETRuntime\"\n" +
+                              "-pn (--providername)  User ETW provider name, eg \"Microsoft-Windows-DotNETRuntime\" or its\n" +
+                              "                      corresponding GUID eg \"e13c0d23-ccbc-4e12-931b-d9cc2eee27e4\"\n" +
                               "-l  (--level)         Logging level: Always, Critical, Error, Warning, Informational, Verbose\n" +
-                              "-ot (--outputtype)    Output type; either POST to URL or write to file\n" +
-                              "-p  (--path)          Either full output file path or URL\n" +
+                              "-ot (--outputtype)    Output type: POST to \"URL\", write to \"file\" or write to \"eventlog\"\n" +
+                              "-p  (--path)          Full output file path or URL. Event logs are automatically written to\n" +
+                              "                      \"Applications and Services Logs\\SilkETW-Log\"\n" +
                               "-f  (--filter)        Filter types: None, EventName, ProcessID, ProcessName, Opcode\n" +
                               "-fv (--filtervalue)   Filter type capture value, eg \"svchost\" for ProcessName\n" +
                               "-y  (--yara)          Full path to folder containing Yara rules\n" +
@@ -330,7 +342,9 @@ namespace SilkETW
             SilkUtility.ReturnStatusMessage("# Use a DNS User collector, specify log level, write to file", ConsoleColor.Green);
             Console.WriteLine("SilkETW.exe -t user -pn Microsoft-Windows-DNS-Client -l Always -ot file -p C:\\Some\\Path\\out.json\n");
             SilkUtility.ReturnStatusMessage("# Use an LDAP User collector, perform Yara matching, POST matches to Elasticsearch", ConsoleColor.Green);
-            Console.WriteLine("SilkETW.exe -t user -pn Microsoft-Windows-Ldap-Client -ot url -p https://some.elk:9200/ldap/_doc/ -y C:\\Some\\Yara\\Rule\\Folder -yo matches");
+            Console.WriteLine("SilkETW.exe -t user -pn Microsoft-Windows-Ldap-Client -ot url -p https://some.elk:9200/ldap/_doc/ -y C:\\Some\\Yara\\Rule\\Folder -yo matches\n");
+            SilkUtility.ReturnStatusMessage("# Specify \"Microsoft-Windows-COM-Perf\" by its GUID, write results to the event log", ConsoleColor.Green);
+            Console.WriteLine("SilkETW.exe -t user -pn b8d6861b-d20f-4eec-bbae-87e0dd80602b -ot eventlog");
         }
 
         // Print status message
@@ -400,6 +414,42 @@ namespace SilkETW
             return isInRoleWithAccess;
         }
 
+        public static Boolean WriteEventLogEntry(String Message, EventLogEntryType Type, EventIds EventId, String Path)
+        {
+            //--[Event ID's]
+            // 0 == Collector start
+            // 1 == Collector terminated -> by user
+            // 2 == Collector terminated -> by error
+            // 3 == Event recorded
+            //--
+
+            try
+            {
+                // Event log properties
+                String Source = "ETW Collector";
+
+                // If the source doesn't exist we have to create it first
+                if (!EventLog.SourceExists(Source))
+                {
+                    EventLog.CreateEventSource(Source, Path);
+                }
+
+                // Write event
+                using (EventLog Log = new EventLog(Path))
+                {
+                    Log.Source = Source;
+                    Log.MaximumKilobytes = 99968; // Max ~100mb size -> needs 64kb increments
+                    Log.ModifyOverflowPolicy(OverflowAction.OverwriteAsNeeded, 10); // Always overwrite oldest
+                    Log.WriteEntry(Message, Type, (int)EventId);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static int ProcessJSONEventData(String JSONData, OutputType OutputType, String Path, String YaraScan, YaraOptions YaraOptions)
         {
             // Yara options
@@ -432,6 +482,7 @@ namespace SilkETW
                 // 0 == OK
                 // 1 == File write failed
                 // 2 == URL POST request failed
+                // 3 == Eventlog write failed
                 //--
 
                 // Process JSON
@@ -456,7 +507,7 @@ namespace SilkETW
                     }
 
                 }
-                else
+                else if (OutputType == OutputType.url)
                 {
                     try
                     {
@@ -485,6 +536,18 @@ namespace SilkETW
                         return 2;
                     }
 
+                }
+                else
+                {
+                    Boolean WriteEvent = WriteEventLogEntry(JSONData, EventLogEntryType.Information, EventIds.Event, Path);
+                    if (WriteEvent)
+                    {
+                        return 0;
+                    } else
+                    {
+                        return 3;
+                    }
+                    
                 }
             } else
             {
