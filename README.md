@@ -151,6 +151,10 @@ We can see at runtime that our Yara rule was hit.
 
 Note also that we are only capturing a subset of the "Microsoft-Windows-DotNETRuntime" events (0x2038), specifically: JitKeyword, InteropKeyword, LoaderKeyword and NGenKeyword.
 
+## How to get SilkETW?
+
+You can either download the source and compile it in Visual Studio. Please note that you can get the community edition of Visual Studio free of charge. Or you can grab the latest pre-built version from [releases](https://github.com/fireeye/SilkETW/releases).
+
 ## Future Work
 
 ### Changelog
@@ -161,5 +165,6 @@ For details on version specific changes, please refer to the [Changelog](Changel
 
 * Offer users the option to write trace data to disk as *.etl files.
 * ~~Offer users the option to write trace data to the Windows event log.~~ **(v0.5)**
+* ~~Offer users pre-compiled releases.~~ **(v0.6+)**
 * Create a separate instance (SilkService) which can be deployed as a service with a configuration file.
 * Suggestions welcome!

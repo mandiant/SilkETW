@@ -1,3 +1,9 @@
+-= SilkETW v0.6 =-
+
+* Added a compiled release package, to be maintained going forward.
+* Created an application icon for SilkETW.
+* Included a reference to Runtime.InteropServices.RuntimeInformation for compatibility with older versions of Windows.
+
 -= SilkETW v0.5 =-
 
 * Add support for writing results to the Windows event log.
