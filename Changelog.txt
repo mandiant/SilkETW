@@ -1,3 +1,8 @@
+-= SilkETW & SilkService v0.7 =-
+
+* SilkService released.
+* A number of ETW events did not capture the process name. SilkETW & SilkService have been configured to enumerate that data where possible.
+
 -= SilkETW v0.6 =-
 
 * Added a compiled release package, to be maintained going forward.

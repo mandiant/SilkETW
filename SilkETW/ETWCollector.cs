@@ -108,6 +108,19 @@ namespace SilkETW
                                 PointerSize = data.PointerSize,
                                 EventDataLength = data.EventDataLength
                             };
+
+                            // Populate Proc name if undefined
+                            if (String.IsNullOrEmpty(eRecord.ProcessName))
+                            {
+                                try
+                                {
+                                    eRecord.ProcessName = Process.GetProcessById(eRecord.ProcessID).ProcessName;
+                                }
+                                catch
+                                {
+                                    eRecord.ProcessName = "N/A";
+                                }
+                            }
                             var EventProperties = new Hashtable();
 
                             // Try to parse event XML

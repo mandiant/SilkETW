@@ -287,7 +287,7 @@ namespace SilkETW
             Console.WriteLine("███████║██║█████╗██║  ██╗███████╗   ██║   ╚███╔███╔╝  ");
             Console.WriteLine("╚══════╝╚═╝╚════╝╚═╝  ╚═╝╚══════╝   ╚═╝    ╚══╝╚══╝   ");
             Console.ResetColor();
-            Console.WriteLine("                  [v0.6 - Ruben Boonen => @FuzzySec]\n");
+            Console.WriteLine("                  [v0.7 - Ruben Boonen => @FuzzySec]\n");
         }
 
         // Print trivia ;)

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkService", "SilkService.csproj", "{3CF3AB33-3BEC-4AE0-AB2A-3E04AC028716}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3CF3AB33-3BEC-4AE0-AB2A-3E04AC028716}.Debug|x86.ActiveCfg = Debug|x86
+		{3CF3AB33-3BEC-4AE0-AB2A-3E04AC028716}.Debug|x86.Build.0 = Debug|x86
+		{3CF3AB33-3BEC-4AE0-AB2A-3E04AC028716}.Release|x86.ActiveCfg = Release|x86
+		{3CF3AB33-3BEC-4AE0-AB2A-3E04AC028716}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {699C0F32-B7C2-48C4-9271-F8FFD8AAEEAA}
+	EndGlobalSection
+EndGlobal

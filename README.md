@@ -1,10 +1,17 @@
-# SilkETW
+# SilkETW & SilkService
 
-SilkETW is a flexible C# wrapper for ETW, it is meant to abstract away the complexities of ETW and give people a simple interface to perform research and introspection. While SilkETW has obvious defensive (and offensive) applications it is primarily a research tool in it's current state.
+SilkETW & SilkService are flexible C# wrappers for ETW, they are meant to abstract away the complexities of ETW and give people a simple interface to perform research and introspection. While both projects have obvious defensive (and offensive) applications they should primarily be considered as research tools.
 
-For easy consumption, output data is serialized to JSON. The JSON data can either be analyzed locally using PowerShell or shipped off to 3rd party infrastructure such as [Elasticsearch](https://www.elastic.co/).
+For easy consumption, output data is serialized to JSON. The JSON data can either be written to file and analyzed locally using PowerShell, stored in the Windows eventlog or shipped off to 3rd party infrastructure such as [Elasticsearch](https://www.elastic.co/).
 
-For more information on the future of SilkETW, see the [Roadmap](#roadmap) section.
+For more information on the future of SilkETW & SilkService, see the [Roadmap](#roadmap) section.
+
+## Media
+
+For more background on SilkETW and SilkService please consult the following resources.
+
+* SilkETW: Because Free Telemetry is … Free! - [here](https://www.fireeye.com/blog/threat-research/2019/03/silketw-because-free-telemetry-is-free.html)
+* SilkETW & SilkService BlackHat Arsenal 2019 - [here](https://github.com/FuzzySecurity/BH-Arsenal-2019)
 
 ## Implementation Details
 
@@ -22,11 +29,106 @@ System.ValueTuple                        4.4.0   https://github.com/dotnet/coref
 YaraSharp                                1.3.1   https://github.com/stellarbear/YaraSharp/blob/master/LICENSE
 ```
 
+## SilkETW
+
 ### Command Line Options
 
 Command line usage is fairly straight forward and user input is validated in the execution prologue. See the image below for further details.
 
 ![Help](Images/help.png)
+
+## SilkService
+
+### Caveat
+
+SilkService was created because a large number of people wanted to run SilkETW headless and perform ETW collection for multiple sources at the same time. While there is obvious appeal to this, the following points should be kept in mind.
+
+* SilkETW & SilkService were created by a one-man engineering army, ([@FuzzySec](https://twitter.com/fuzzysec)), they are not backed by a department of developers and as such may contain bugs. If you do encounter bugs or see ways to improve these projects you are strongly encouraged to file tickets and/or submit pull requests.
+* ETW collection can be resource intensive. Do not roll out SilkService across a wide range of hosts without thorough performance testing. Ensure that the configuration can run stably on your least powerful machines.
+
+### Setup
+
+After compiling or downloading the release package you can install the service by issuing the following command from an elevated prompt.
+
+```
+sc create SillkService binPath= "C:\Path\To\SilkService.exe" start= demand
+```
+
+### Configuration
+
+SilkService ingests an XML configuration file, "SilkServiceConfig.xml", which should be placed in the same directory as the service binary. An example configuration file can be seen below.
+
+```xml
+<SilkServiceConfig>
+	<!--
+		This is a user collector
+		-> Microsoft-Windows-DotNETRuntime
+		-> GUID or string based name
+	-->
+	<ETWCollector>
+		<Guid>45c82358-c52d-4892-8237-ba001d396fb4</Guid>
+		<CollectorType>user</CollectorType>
+		<ProviderName>e13c0d23-ccbc-4e12-931b-d9cc2eee27e4</ProviderName>
+		<UserKeywords>0x2038</UserKeywords>
+		<OutputType>url</OutputType>
+		<Path>https://some.elk:9200/NetETW/_doc/</Path>
+	</ETWCollector>
+	<!--
+		This is a user collector
+	-->
+	<ETWCollector>
+		<Guid>6720babc-dedc-4906-86b9-d0bc0089ec50</Guid>
+		<CollectorType>user</CollectorType>
+		<ProviderName>Microsoft-Windows-DNS-Client</ProviderName>
+		<OutputType>eventlog</OutputType>
+		<YaraScan>C:\Some\Path\RuleFolder</YaraScan>
+		<YaraOptions>Matches</YaraOptions>
+	</ETWCollector>
+	<!--
+		This is a kernel collector
+	-->
+	<ETWCollector>
+		<Guid>21ac2393-3bbb-4702-a01c-b593e21913dc</Guid>
+		<CollectorType>kernel</CollectorType>
+		<KernelKeywords>Process</KernelKeywords>
+		<OutputType>file</OutputType>
+		<Path>C:\Users\b33f\Desktop\kproc.json</Path>
+	</ETWCollector>
+</SilkServiceConfig>
+```
+
+Note that each ETWCollector element should have a random GUID, this is used for internal tracking and logging purposes. You can generate GUID's in PowerShell using the following command:
+
+```powershell
+PS C:\> [guid]::NewGuid()
+
+Guid
+----
+eee52b87-3f32-4651-b0c3-e7bb9af334aa
+```
+
+### Auditing
+
+At runtime SilkService will create a "Logs" subfolder to record service runtime information. This is an invaluable resource to poll the service state, verify service parameter validation and review error information. SilkService has a preference to shut down gracefully if it encounters any type of error, even if such an error does not strictly require termination. This design decision was made purposely as it is not a sound strategy to have dangling collectors or partial operability.
+
+**Always consult the service log if the service shuts itself down!**
+
+### Something went wrong?
+
+It is always possible that something goes wrong. Consult the service log for further details. While SilkService is configured to terminate and clean up ETW collectors or error it is possible that a stale collector remains registered after process termination. To list running collectors you can use the following command.
+
+```
+logman -ets
+```
+
+If any stale collectors are identified they can be removed by issuing the following commands from an elevated prompt.
+
+```powershell
+Get-EtwTraceProvider |Where-Object {$.SessionName -like "SilkService*"} |ForEach-Object {Stop-EtwTraceSession -Name $.SessionName}
+Get-EtwTraceProvider |Where-Object {$_.SessionName -like "SilkService*"} |Remove-EtwTraceProvider
+```
+
+## Output Format
 
 ### JSON Output Structure
 
@@ -66,7 +168,7 @@ Note that, depending on the provider and the event type, you will have variable 
    "TimeStamp":"2019-03-03T17:58:14.2862348+00:00",
    "ThreadID":11996,
    "ProcessID":8416,
-   "ProcessName":"",
+   "ProcessName":"N/A",
    "PointerSize":8,
    "EventDataLength":76,
    "XmlEventData":{
@@ -92,7 +194,7 @@ Note that, depending on the provider and the event type, you will have variable 
 }
 ```
 
-## Usage
+## Post-Collection
 
 ### Filter data in PowerShell
 
@@ -151,7 +253,7 @@ We can see at runtime that our Yara rule was hit.
 
 Note also that we are only capturing a subset of the "Microsoft-Windows-DotNETRuntime" events (0x2038), specifically: JitKeyword, InteropKeyword, LoaderKeyword and NGenKeyword.
 
-## How to get SilkETW?
+## How to get SilkETW & SilkService?
 
 You can either download the source and compile it in Visual Studio. Please note that you can get the community edition of Visual Studio free of charge. Or you can grab the latest pre-built version from [releases](https://github.com/fireeye/SilkETW/releases).
 
@@ -164,7 +266,7 @@ For details on version specific changes, please refer to the [Changelog](Changel
 ### RoadMap
 
 * Offer users the option to write trace data to disk as *.etl files.
-* ~~Offer users the option to write trace data to the Windows event log.~~ **(v0.5)**
+* ~~Offer users the option to write trace data to the Windows event log.~~ **(v0.5+)**
 * ~~Offer users pre-compiled releases.~~ **(v0.6+)**
-* Create a separate instance (SilkService) which can be deployed as a service with a configuration file.
+* ~~Create a separate instance (SilkService) which can be deployed as a service with a configuration file.~~ **(v0.7+)**
 * Suggestions welcome!
