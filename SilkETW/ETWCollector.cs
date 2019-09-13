@@ -133,7 +133,16 @@ namespace SilkETW
                                     for (int AttribIndex = 0; AttribIndex < EventElementReader.AttributeCount; AttribIndex++)
                                     {
                                         EventElementReader.MoveToAttribute(AttribIndex);
-                                        EventProperties.Add(EventElementReader.Name, EventElementReader.Value);
+
+                                        // Cap maxlen for eventdata elements to 10k
+                                        if (EventElementReader.Value.Length > 10000)
+                                        {
+                                            String DataValue = EventElementReader.Value.Substring(0, Math.Min(EventElementReader.Value.Length, 10000));
+                                            EventProperties.Add(EventElementReader.Name, DataValue);
+                                        } else
+                                        {
+                                            EventProperties.Add(EventElementReader.Name, EventElementReader.Value);
+                                        }
                                     }
                                 }
                             }

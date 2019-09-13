@@ -18,6 +18,18 @@ namespace SilkService
     {
         public static void StartTrace(CollectorParameters Collector)
         {
+            void RetargetEventSource(String LegacySource)
+            {
+                // This is a fix for: https://github.com/fireeye/SilkETW/issues/4
+                // When both SilkETW and SilkService are used on the same host
+                // eventlog logging would fail for one or the other as they had
+                // the same source. This function will retarget the source.
+                if (EventLog.SourceExists(LegacySource))
+                {
+                    EventLog.DeleteEventSource(LegacySource);
+                }
+            }
+
             Boolean WriteEventLogEntry(String Message, EventLogEntryType Type, EventIds EventId, String Path)
             {
                 //--[Event ID's]
@@ -29,8 +41,11 @@ namespace SilkService
 
                 try
                 {
+                    // Fix legacy collector source
+                    RetargetEventSource("ETW Collector");
+
                     // Event log properties
-                    String Source = "ETW Collector";
+                    String Source = "SilkService Collector";
 
                     // If the source doesn't exist we have to create it first
                     if (!EventLog.SourceExists(Source))
@@ -275,7 +290,17 @@ namespace SilkService
                                     for (int AttribIndex = 0; AttribIndex < EventElementReader.AttributeCount; AttribIndex++)
                                     {
                                         EventElementReader.MoveToAttribute(AttribIndex);
-                                        EventProperties.Add(EventElementReader.Name, EventElementReader.Value);
+
+                                        // Cap maxlen for eventdata elements to 10k
+                                        if (EventElementReader.Value.Length > 10000)
+                                        {
+                                            String DataValue = EventElementReader.Value.Substring(0, Math.Min(EventElementReader.Value.Length, 10000));
+                                            EventProperties.Add(EventElementReader.Name, DataValue);
+                                        }
+                                        else
+                                        {
+                                            EventProperties.Add(EventElementReader.Name, EventElementReader.Value);
+                                        }
                                     }
                                 }
                             }

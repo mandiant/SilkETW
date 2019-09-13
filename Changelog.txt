@@ -1,3 +1,8 @@
+-= SilkETW & SilkService v0.8 =-
+
+* Bug fix: https://github.com/fireeye/SilkETW/issues/4
+* Bug fix: https://github.com/fireeye/SilkETW/issues/5
+
 -= SilkETW & SilkService v0.7 =-
 
 * SilkService released.

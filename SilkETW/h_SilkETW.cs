@@ -287,7 +287,7 @@ namespace SilkETW
             Console.WriteLine("███████║██║█████╗██║  ██╗███████╗   ██║   ╚███╔███╔╝  ");
             Console.WriteLine("╚══════╝╚═╝╚════╝╚═╝  ╚═╝╚══════╝   ╚═╝    ╚══╝╚══╝   ");
             Console.ResetColor();
-            Console.WriteLine("                  [v0.7 - Ruben Boonen => @FuzzySec]\n");
+            Console.WriteLine("                  [v0.8 - Ruben Boonen => @FuzzySec]\n");
         }
 
         // Print trivia ;)
@@ -414,6 +414,18 @@ namespace SilkETW
             return isInRoleWithAccess;
         }
 
+        public static void RetargetEventSource(String LegacySource)
+        {
+            // This is a fix for: https://github.com/fireeye/SilkETW/issues/4
+            // When both SilkETW and SilkService are used on the same host
+            // eventlog logging would fail for one or the other as they had
+            // the same source. This function will retarget the source.
+            if (EventLog.SourceExists(LegacySource))
+            {
+                EventLog.DeleteEventSource(LegacySource);
+            }
+        }
+
         public static Boolean WriteEventLogEntry(String Message, EventLogEntryType Type, EventIds EventId, String Path)
         {
             //--[Event ID's]
@@ -425,8 +437,11 @@ namespace SilkETW
 
             try
             {
+                // Fix legacy collector source
+                RetargetEventSource("ETW Collector");
+
                 // Event log properties
-                String Source = "ETW Collector";
+                String Source = "SilkETW Collector";
 
                 // If the source doesn't exist we have to create it first
                 if (!EventLog.SourceExists(Source))
