@@ -12,6 +12,8 @@ For more background on SilkETW and SilkService please consult the following reso
 
 * SilkETW: Because Free Telemetry is … Free! - [here](https://www.fireeye.com/blog/threat-research/2019/03/silketw-because-free-telemetry-is-free.html)
 * SilkETW & SilkService BlackHat Arsenal 2019 - [here](https://github.com/FuzzySecurity/BH-Arsenal-2019)
+* Threat Hunting with ETW events and HELK — Part 1: Installing SilkETW (by [@Cyb3rWard0g](https://twitter.com/Cyb3rWard0g)) - [here](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-1-installing-silketw-6eb74815e4a0)
+* Threat Hunting with ETW events and HELK — Part 2: Shipping ETW events to HELK (by [@Cyb3rWard0g](https://twitter.com/Cyb3rWard0g)) - [here](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-2-shipping-etw-events-to-helk-16837116d2f5)
 
 ## Implementation Details
 
