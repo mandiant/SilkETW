@@ -221,12 +221,21 @@ namespace SilkETW
                 {
                     try
                     {
-                        SilkUtility.FilterValueObject = byte.Parse(FilterValue);
-                        if ((byte)SilkUtility.FilterValueObject > 9)
+                        UInt32 opcode;
+                        if (FilterValue.StartsWith("0x"))
                         {
-                            SilkUtility.ReturnStatusMessage("[!] Opcode outside valid range (0-9)", ConsoleColor.Red);
+                            opcode = Convert.ToUInt32(FilterValue, 16);
+                        }
+                        else
+                        {
+                            opcode = Convert.ToUInt32(FilterValue);
+                        }
+                        if (opcode > byte.MaxValue)
+                        {
+                            SilkUtility.ReturnStatusMessage("[!] Opcode outside valid range (0-255)", ConsoleColor.Red);
                             return;
                         }
+                        SilkUtility.FilterValueObject = Convert.ToByte(opcode);
                     }
                     catch
                     {
